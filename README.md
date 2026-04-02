@@ -38,6 +38,7 @@
     
 ### **📁 증빙 자료:**
   * [1차_AI협업캡처.pdf 첨부 완료] (첨부 후 링크)
+  * 
 file:///C:/Users/CEO/Desktop/AI%20%ED%98%91%EC%97%85%EB%82%B4%EC%9A%A91.pdf
 <br>
 
