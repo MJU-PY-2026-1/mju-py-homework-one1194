@@ -109,9 +109,10 @@ file:///C:/Users/CEO/Desktop/AI%20%ED%98%91%EC%97%85%EB%82%B4%EC%9A%A91.pdf
     * 함수를 정의해주는 def를 사용하여 그 전에 수행했던 기능들을 하나의 함수들로 묶어 언제든지 호출할 수 있도록 짬
     * **적용 내용:** ....
     * 함수 3개를 정의하여 메인 메뉴를 띄울 때 편하게 함수들을 호출하여 메인 메뉴를 구성함
-      register_rookie()
-      enter_transfer_market()
-      display_squad_info()
+      calculate_ovr() - 연산 
+      register_rookie() - 선수 등록 
+      enter_transfer_market() - 선수 영입 
+      display_squad_info() - 스쿼드 출력 
 
 ### **🛠️ Troubleshooting & 기술 회고:**
   1. **문제 1:**
