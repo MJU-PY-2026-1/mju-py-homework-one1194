@@ -1,5 +1,8 @@
 # 파일이름 :
 # 작 성 자 :
+
+import random
+
 manager_name = ""
 team_budget = 0.0
 add_count = 0
@@ -41,25 +44,53 @@ market_players = [
     ["흐비차 크바라츠헬리아", "FW", 86, 80, 88, 72, 60, 93, 1100.0]
 ]
 
+def load_squad_file() :
+    global my_taem 
+    try : 
+        with open("squad_storage.txt", "r", encoding = "utf-8") as f :
+            for line in f :
+                data = line.strip().split(",")
+                if len(data) == 3 :
+                    my_team.append([data[0], data[1], float(data[2])])
+        print("\n💾 [데이터 로드 성공] 이전 시즌의 스쿼드 데이터를 파일에서 불러왔습니다.")
+    except FileNotFoundError:
+        print("\nℹ️ [데이터 로드 안내] 저장된 기존 스쿼드 파일(squad_storage.txt)이 없습니다. 새 게임을 시작합니다.")
+
+def save_squad_file():
+    if not my_team:
+        print("💾 [시스템] 저장할 스쿼드 데이터가 없어 파일을 생성하지 않습니다.")
+        return
+
+    with open("squad_storage.txt", "w", encoding="utf-8") as f:
+        for player in my_team:
+            # 이름, 포지션, OVR을 쉼표로 구분하여 한 줄씩 파일에 저장
+            f.write(f"{player[0]},{player[1]},{player[2]}\n")
+    print("💾 [시스템] 현재까지의 구단 스쿼드가 'squad_storage.txt'에 안전하게 저장되었습니다.")
+    
 def calculate_ovr(stats, position) :
     calculated_ovr = 0.0
 
     if position == "FW" :
         calculated_ovr = (stats[0]*0.35) + (stats[2]*0.2) + (stats[5]*0.15) + (stats[1]*0.15) + (stats[3]*0.1) + (stats[4]*0.05)
     elif position == "MF":
-        ovr = (stats[1]*0.35) + (stats[5]*0.2) + (stats[2]*0.15) + (stats[0]*0.1) + (stats[4]*0.1) + (stats[3]*0.1)
+        calculated_ovr = (stats[1]*0.35) + (stats[5]*0.2) + (stats[2]*0.15) + (stats[0]*0.1) + (stats[4]*0.1) + (stats[3]*0.1)
     elif position == "DF":
-        ovr = (stats[4]*0.4) + (stats[2]*0.2) + (stats[3]*0.2) + (stats[1]*0.1) + (stats[0]*0.05) + (stats[5]*0.05)
+        calculated_ovr = (stats[4]*0.4) + (stats[2]*0.2) + (stats[3]*0.2) + (stats[1]*0.1) + (stats[0]*0.05) + (stats[5]*0.05)
     elif position == "GK":
-        ovr = (stats[4]*0.4) + (stats[5]*0.25) + (stats[1]*0.15) + (stats[3]*0.15) + (stats[2]*0.05)
+        calculated_ovr = (stats[4]*0.4) + (stats[5]*0.25) + (stats[1]*0.15) + (stats[3]*0.15) + (stats[2]*0.05)
     else : 
         calculated_ovr = sum(stats) / len(stats)
 
     return calculated_ovr
 
 def register_rookie() :
-    print("\n" + "-"*15 + "신인 선수 등록 시스템" + "-"*15)
-    add_count = int(input("새로 등록할 신인 선수는 몇 명입니까? (정수) : "))
+    print("\n" + "-" * 15 + "신인 선수 등록 시스템" + "-"*15)
+    try :
+        add_count = int(input("새로 등록할 신인 선수는 몇 명입니까? (정수) : "))
+    except ValueError :
+        print("⚠️ [입력 오류] 정수(숫자)만 입력하셔야 합니다. 메뉴로 돌아갑니다.")
+        return    
+    
     stat_names = ["슈팅", "패스", "스피드", "피지컬", "수비", "민첩성"]
 
     for i in range(add_count) :
@@ -68,8 +99,13 @@ def register_rookie() :
 
         new_stats = []
         print(f"--- {new_name}의 6개 능력치 입력 ---")
-        for s_name in stat_names :
-            new_stats.append(int(input(f"{s_name} : ")))
+        
+        try :
+            for s_name in stat_names :
+                new_stats.append(int(input(f"{s_name} : ")))
+        except ValueError :
+            print("⚠️ [입력 오류] 능력치 스탯에는 숫자만 입력 가능합니다. 이 선수의 등록은 취소됩니다.")
+            continue
 
         ovr = calculate_ovr(new_stats, new_pos)
         new_price = ovr * 9.0
@@ -81,9 +117,12 @@ def enter_transfer_market() :
     global team_budget 
     global is_signed
     global target_player
-    i = 0
 
-    try_count = int(input("최대 몇 번의 영입 시도를 하시겠습니까? (숫자 입력): "))
+    try :
+        try_count = int(input("최대 몇 번의 영입 시도를 하시겠습니까? (숫자 입력): "))
+    except ValueError :
+        print("⚠️ [입력 오류] 숫자 형식으로만 입력해 주세요. 메뉴로 돌아갑니다.")
+        return
 
     for i in range(try_count):
         is_signed = False 
@@ -93,9 +132,8 @@ def enter_transfer_market() :
     
         if target_player.lower() == 'exit':
             print("이적 시장 쇼핑을 조기 종료하고 메인 메뉴로 돌아갑니다.")
-            break # for 반복문을 즉시 빠져나감
+            break 
         
-    # 시장 데이터베이스 탐색
         found_player = None
         for p in market_players:
             if p[0] == target_player:
@@ -112,11 +150,11 @@ def enter_transfer_market() :
             print(f"🔍 선수 발견: {p_name} ({p_pos}) | 이적료: {p_price:.1f}억 원")
             print("▶스카우터 예상 등급 : ", end = "")
 
-            if ovr >= 90 :
+            if ovr >= 85 :
                 print("S등급(월드클래스)")
-            elif ovr >= 80 :
+            elif ovr >= 75 :
                 print("A등급(즉시 전력감)")
-            elif ovr >= 70 :
+            elif ovr >= 65 :
                 print("B등급(유망주)")
             else : 
                 print("C등급(영입 보류 권장)")
@@ -125,7 +163,7 @@ def enter_transfer_market() :
             confirm = input(f"✅ 예산 충분! {p_name}을(를) 영입하시겠습니까? (y/n): ")
             if confirm.lower() == 'y':
                 team_budget -= p_price
-                my_team.append(f"{p_name} ({p_pos})")
+                my_team.append([p_name, p_pos, round(ovr,1)])
                 is_signed = True
                 print(f"🎊 영입 성공! 스쿼드에 등록되었습니다.")
             else:
@@ -141,20 +179,96 @@ def enter_transfer_market() :
         display_squad_info()
 
 def display_squad_info() :
-    print(f"\n--- 현재 {manager_name} 감독의 스쿼드 ---")
+    print(f"\n" + "=" * 15 + f"현재 {manager_name} 감독의 스쿼드 명단" + "=" * 15)
+    print("순번 | 선수명              | 포지션 | 종합스탯(OVR)")
+    print("-" * 60)
+
     if not my_team : 
-        print("(영입된 선수 없음)")
+        print("(영입된 선수가 없습니다.)")
     else : 
-        for idx, member in enumerate(my_team) :
-            print(f"{idx+1}. {member}")
+        for i in range(len(my_team)) :
+            print(f"[{i+1:2d}] | ", end="")
+            for j in range(len(my_team[i])) :
+                item = my_team[i][j]
+                if j == 0 :
+                    print(f"{item:<18} | ", end=" | ")
+                elif j == 1 :
+                    print(f"{item:<4} | ", end=" | ")
+                elif j == 2 :
+                    print(f"{item}", end="")    
+            print()
+            
+    print("-" * 60)
     print(f"💰 현재 잔여 예산 : {team_budget:.1f}억 원")
+
+def play_friendly_match() :
+    print("\n" + "⚽" * 10 + "라이벌 클럽과의 친선 매치 진행" + "⚽" * 10)
+
+    if not my_team :
+        print("⚠️ 친선 매치 진행 불가: 경기에 내보낼 선수가 없습니다! 먼저 선수를 영입해 주세요.")
+        return
+    
+    total_ovr = 0.0
+    for player in my_team :
+        total_ovr += player[2]
+    squad_avg_ovr = total_ovr / len(my_team)
+
+    print(f"▶ [{manager_name} 호] 감독님의 현재 스쿼드 평균 능력치 : {squad_avg_ovr:.1f}")
+
+    print("⚔️ [맞붙을 상대 클럽을 선택하세요]")
+    print("1. AI FC (평균 능력치: 78.0) - [난이도 : 쉬움]")
+    print("2. 라이벌 AI 유나이티드 (평균 능력치: 83.5) - [난이도 : 보통]")
+    print("3. AI 뮌헨 (평균 능력치: 85.0) - [난이도 : 어려움]")
+    print("4. AI 마드리드 (평균 능력치: 88.0) - [난이도 : 극악]")
+
+    rival_choice = input("\n상대 팀 번호를 입력하세요 (1~4) : ").strip()
+
+    if rival_choice == "1" :
+        rival_name = "AI FC"
+        rival_ovr = 78.0
+    elif rival_choice == "2" :
+        rival_name = "라이벌 AI 유나이티드"
+        rival_ovr = 83.5
+    elif rival_choice == "3" :
+        rival_name = "AI 뮌헨"
+        rival_ovr = 85.0
+    elif rival_choice == "4" :
+        rival_name = "AI 마드리드"
+        rival_ovr = 88.0
+    else :
+        print("⚠️ 잘못된 입력입니다. 기본적으로 라이벌 AI 유나이티드와 경기를 진행합니다.")
+        rival_name = "라이벌 AI 유나이티드"
+        rival_ovr = 83.5
+    print("\n.. 킥오프! [{manager_name} 호] vs [{rival_name}] 전후반 90분 시뮬레이션 가동 중 ..\n")
+    
+    my_bonus = int((squad_avg_ovr - rival_ovr) // 3)
+    my_goals = random.randint(0,4) + max(0, my_bonus)
+    rival_bonus = int((rival_ovr - squad_avg_ovr) // 3)
+    rival_goals = random.randint(0,4) + max(0, rival_bonus)
+
+    print(f"🏁 경기 종료! [최종 스코어] 내 팀 {my_goals} : {rival_goals} 라이벌 팀")
+
+    if my_goals > rival_goals :
+        print("🎉 대승리! 전술적 우위와 탄탄한 스쿼드의 힘으로 라이벌을 격파했습니다!")
+    elif my_goals == rival_goals :
+        print("🤝 무승부! 양 팀 모두 치열한 공방을 펼쳤지만 승부를 가리지 못했습니다.")
+    else : 
+        print("😭 패배... 라이벌 팀의 강력한 공격력에 고전하며 아쉽게 패배했습니다. 추가적인 선수 영입을 추천합니다.")
 
 print("=" * 40)
 print(" ⚽ 방구석 명장 스카우트 시스템 ⚽")
 print("=" * 40)
 
+load_squad_file()
+
 manager_name = input("감독님의 이름을 입력하세요 : ")
-team_budget = float(input("구단 초기 예산을 입력하세요(단위 : 억 원, 실수형으로 숫자만 입력하세요, ex : 4000) : "))
+
+while True :
+    try :
+        team_budget = float(input("구단 초기 예산을 입력하세요(단위 : 억 원, 실수형으로 숫자만 입력하세요, ex : 4000) : "))
+        break
+    except ValueError :
+        print("⚠️ [입력 오류] 숫자 형식으로만 입력해 주세요. 예산을 다시 입력해 주세요.")
 
 print(f"\n환영합니다, {manager_name} 감독님!")
 print(f"현재 구단 예산은 {team_budget:.1f}억 원이며, 이적 시장에는 {len(market_players)}명의 선수가 있습니다.")
@@ -165,10 +279,11 @@ while True :
     print("1. 신인 선수 등록 (입력)")
     print("2. 이적 시장 오픈 (영입/분석)")
     print("3. 내 스쿼드 조회 (조회)")
-    print("4. 시스템 종료")
+    print("4. 라이벌 팀과 경기 진행 (시뮬레이션)")
+    print("5. 시스템 종료")
     print("="*25)
 
-    menu_choice = input("원하시는 메뉴 번호를 선택하세요 (1~4) : ")
+    menu_choice = input("원하시는 메뉴 번호를 선택하세요 (1~5) : ")
 
     if menu_choice == "1" : 
         register_rookie()
@@ -178,12 +293,16 @@ while True :
         display_squad_info() 
         input("\n(엔터 키를 누르면 메인 메뉴로 돌아갑니다...)")
     elif menu_choice == "4" :
+        play_friendly_match()
+        input("\n(엔터 키를 누르면 메인 메뉴로 돌아갑니다...")
+    elif menu_choice == "5" :
         print("\n" + "=" * 40)
         print(f"이적 시장 종료! {manager_name} 감독님의 영입 결과")
         display_squad_info()
+        save_squad_file()
         print("방구석 명장 시스템을 이용해 주셔서 감사합니다.")
         print("=" * 40)
         break 
     else : 
-        print("잘못된 입력입니다. 1번부터 4번 사이의 숫자를 입력해 주세요.")
-        input("\n(엔터 키를 누르면 메인 메뉴로 돌아갑니다...)")
+        print("잘못된 입력입니다. 1번부터 5번 사이의 숫자를 입력해 주세요.")
+        input("\n(엔터 키를 누르면 메인 메뉴로 돌아갑니다...)")  
